@@ -11,6 +11,7 @@ config_dirs=(
   "bspwm"
   "sxhkd"
   "yazi"
+  "kitty"
 )
 
 function copy() {
