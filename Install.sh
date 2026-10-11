@@ -23,6 +23,29 @@ function install_pkgs {
   return
 }
 
+# install aur pkg
+# ---------------
+function install_aur_pkgs {
+  local pkgs=("$@")
+
+  for pkg in "${pkgs[@]}"; do
+    # check pkg in the system
+    if yay -Q $pkg &>>log; then
+      echo "[OK] The pkg: $pkg already is installed"
+    else
+      # install if missing
+      if yay -S $pkg --noconfirm &>>log; then
+        echo "[OK] The pkg: $pkg is installed"
+      else
+        # exit if fail installation
+        echo "[FAIL] The pkg: $pkg installation error"
+        exit 1
+      fi
+    fi
+  done
+  return
+}
+
 # step zero, create basic dirs
 # ----------------------------
 function create_std_dirs {
@@ -138,13 +161,20 @@ install_personal_pkgs() {
     "keepassxc"
   )
 
+  local aur_pkgs=(
+    "spotify"
+  )
+
   if [[ $optional == 1 ]]; then
     install_pkgs "${pkgs[@]}"
+    install_aur_pkgs "${aur_pkgs[@]}"
   fi
 
   return
 }
 
+# step three, install aur helper
+# ------------------------------
 install_aur_helper() {
   local yay_link="https://aur.archlinux.org/yay.git"
 
@@ -172,6 +202,37 @@ install_aur_helper() {
   fi
 }
 
+# step four, install aur std pks
+# ------------------------------
+function install_aur_std_pkgs {
+  local pkgs=(
+    # lockscreen
+    "i3lock-color"
+  )
+
+  install_aur_pkgs "${pkgs[@]}"
+  return
+}
+
+# pkgs (nvidia) optional
+# ----------------------
+install_nvidia_drivers() {
+  local optional=$1
+
+  local pkgs=(
+    "linux-headers"
+    "nvidia-dkms"
+    "nvidia-utils"
+    "lib32-nvidia-utils"
+  )
+
+  if [[ $optional == 1 ]]; then
+    install_pkgs "${pkgs[@]}"
+  fi
+
+  return
+}
+
 function main {
   local personal_pkgs=$(input_value "Do you want install karakurt pks? (y/n): ")
   local nvidia_drivers=$(input_value "Do you want install nvidia drivers? (y/n): ")
@@ -180,6 +241,8 @@ function main {
   install_std_pkgs
   install_lazyvim
   install_aur_helper
+  install_aur_std_pkgs
+  install_nvidia_drivers $nvidia_drivers
   install_personal_pkgs $personal_pkgs
   exit 0
 }
