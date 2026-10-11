@@ -97,6 +97,9 @@ function install_std_pkgs {
     "eza"
     "yazi"
 
+    # file manager
+    "thunar"
+
     # launcher
     "rofi"
 
@@ -109,6 +112,7 @@ function install_std_pkgs {
     # wm dep
     "xorg-server"
     "xorg-xinit"
+    "feh"
     "bspwm"
     "sxhkd"
   )

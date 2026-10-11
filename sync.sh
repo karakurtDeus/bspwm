@@ -10,6 +10,7 @@ config_home=(
 config_dirs=(
   "bspwm"
   "sxhkd"
+  "yazi"
 )
 
 function copy() {
