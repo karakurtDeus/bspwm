@@ -94,6 +94,8 @@ function install_std_pkgs {
   return
 }
 
+# step two, install std code editor
+# ---------------------------------
 install_lazyvim() {
   lazyvim_link="https://github.com/LazyVim/starter"
   lazyvim_dir="$HOME/.config/nvim"
@@ -110,11 +112,77 @@ install_lazyvim() {
   return
 }
 
+# receive question and return true or false
+# -----------------------------------------
+input_value() {
+  local question=$1
+  read -rp "$question" value
+
+  case $value in
+  "y" | "yes" | "YES" | "Yes")
+    echo "1"
+    ;;
+  *)
+    echo "0"
+    ;;
+  esac
+  return
+}
+
+# pkgs (karakurt) optional
+# ------------------------
+install_personal_pkgs() {
+  local optional=$1
+
+  local pkgs=(
+    "keepassxc"
+  )
+
+  if [[ $optional == 1 ]]; then
+    install_pkgs "${pkgs[@]}"
+  fi
+
+  return
+}
+
+install_aur_helper() {
+  local yay_link="https://aur.archlinux.org/yay.git"
+
+  # clone rep
+  if ls /tmp/yay &>>log; then
+    echo "[OK] yay already clone"
+  else
+    if git clone $yay_link /tmp/yay &>>log; then
+      echo "[OK] yay clone"
+    else
+      echo "[FAIL] yay clone"
+    fi
+  fi
+
+  # build
+  if pacman -Q yay &>>log; then
+    echo "[OK] yay already installed"
+  else
+    cd /tmp/yay
+    if makepkg -si --noconfirm &>>log; then
+      echo "[OK] yay build"
+    else
+      echo "[FAIL] yay build"
+    fi
+    cd - &>/dev/null
+  fi
+}
+
 function main {
+  local personal_pkgs=$(input_value "Do you want install karakurt pks? (y/n): ")
+  local nvidia_drivers=$(input_value "Do you want install nvidia drivers? (y/n): ")
+
   create_std_dirs
   install_std_pkgs
   install_lazyvim
-  return
+  install_aur_helper
+  install_personal_pkgs $personal_pkgs
+  exit 0
 }
 
 main
