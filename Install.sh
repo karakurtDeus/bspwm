@@ -148,21 +148,20 @@ install_personal_pkgs() {
 install_aur_helper() {
   local yay_link="https://aur.archlinux.org/yay.git"
 
-  # clone rep
-  if ls /tmp/yay &>>log; then
-    echo "[OK] yay already clone"
-  else
-    if git clone $yay_link /tmp/yay &>>log; then
-      echo "[OK] yay clone"
-    else
-      echo "[FAIL] yay clone"
-    fi
-  fi
-
-  # build
   if pacman -Q yay &>>log; then
     echo "[OK] yay already installed"
   else
+    # clone rep
+    if ls /tmp/yay &>>log; then
+      echo "[OK] yay already clone"
+    else
+      if git clone $yay_link /tmp/yay &>>log; then
+        echo "[OK] yay clone"
+      else
+        echo "[FAIL] yay clone"
+      fi
+    fi
+    # build
     cd /tmp/yay
     if makepkg -si --noconfirm &>>log; then
       echo "[OK] yay build"
