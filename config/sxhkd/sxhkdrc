@@ -18,8 +18,13 @@ super + Escape
 super + e
   thunar
 
-super + ctrl + s
+# screenshot
+super + shift + s
   flameshot gui
+
+# powermenu
+super + ctrl + p
+  ~/.config/bspwm/bin/power_menu.sh
 
 #
 # bspwm hotkeys
