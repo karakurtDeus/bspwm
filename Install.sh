@@ -96,6 +96,7 @@ function install_std_pkgs {
     "bat"
     "eza"
     "yazi"
+    "btop"
 
     # file manager
     "thunar"
@@ -115,6 +116,10 @@ function install_std_pkgs {
     "feh"
     "bspwm"
     "sxhkd"
+    "clipmenu"
+    "flameshot"
+    "polybar"
+    "dunst"
   )
 
   install_pkgs "${pkgs[@]}"
@@ -163,6 +168,7 @@ install_personal_pkgs() {
 
   local pkgs=(
     "keepassxc"
+    "obsidian"
   )
 
   local aur_pkgs=(

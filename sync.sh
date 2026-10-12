@@ -12,6 +12,8 @@ config_dirs=(
   "sxhkd"
   "yazi"
   "kitty"
+  "flameshot"
+  "polybar"
 )
 
 function copy() {
@@ -46,13 +48,14 @@ function update() {
   for config in "${config_home[@]}"; do
     if rm -R $HOME/$config &>>log; then
       echo "[OK] $config delete old file"
-      if cp -R ./home/$config $HOME &>>log; then
-        echo "[OK] $config update file"
-      else
-        echo "[FAIL] $config update file"
-      fi
     else
       echo "[FAIL] $config delete old file"
+    fi
+
+    if cp -R ./home/$config $HOME &>>log; then
+      echo "[OK] $config update file"
+    else
+      echo "[FAIL] $config update file"
       exit 1
     fi
   done
@@ -61,13 +64,14 @@ function update() {
   for config in "${config_dirs[@]}"; do
     if rm -R $HOME/.config/$config &>>log; then
       echo "[OK] $config delete old dir"
-      if cp -R ./config/$config $HOME/.config &>>log; then
-        echo "[OK] $config update dir"
-      else
-        echo "[FAIL] $config update dir"
-      fi
     else
       echo "[FAIL] $config delete old dir"
+    fi
+
+    if cp -R ./config/$config $HOME/.config &>>log; then
+      echo "[OK] $config update dir"
+    else
+      echo "[FAIL] $config update dir"
       exit 1
     fi
   done
