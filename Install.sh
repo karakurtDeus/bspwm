@@ -46,6 +46,25 @@ function install_aur_pkgs {
   return
 }
 
+# start std services
+# ------------------
+function enable_std_services {
+  local services=(
+    "NetworkManager"
+    "bluetooth"
+  )
+
+  for src in "${services[@]}"; do
+    # check pkg in the system
+    if sudo systemctl enable --now $src &>>log; then
+      echo "[OK] The service: $src enable and run"
+    else
+      echo "[FAIL] The service: $src enable error"
+    fi
+  done
+  return
+}
+
 # step zero, create basic dirs
 # ----------------------------
 function create_std_dirs {
@@ -89,6 +108,20 @@ function install_std_pkgs {
     "vim"
     "git"
     "base-devel"
+
+    # audio
+    "pipewire"
+    "wireplumber"
+    "pipewire-pulse"
+    "pipewire-alsa"
+
+    # bluetooth
+    "bluez"
+    "bluez-utils"
+    "bluetui"
+
+    # network (manager)
+    "networkmanager"
 
     # terminal
     "kitty"
@@ -169,6 +202,9 @@ install_personal_pkgs() {
   local pkgs=(
     "keepassxc"
     "obsidian"
+    "cryptsetup"
+    "telegram-desktop"
+    "discord"
   )
 
   local aur_pkgs=(
@@ -252,6 +288,7 @@ function main {
   install_lazyvim
   install_aur_helper
   install_aur_std_pkgs
+  enable_std_services
   install_nvidia_drivers $nvidia_drivers
   install_personal_pkgs $personal_pkgs
   exit 0
