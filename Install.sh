@@ -122,12 +122,17 @@ function install_std_pkgs {
 
     # network (manager)
     "networkmanager"
+    "ufw"
 
     # terminal
     "kitty"
     "less"
     "bat"
     "eza"
+    "zsh"
+    "zsh-completions"
+    "fzf"
+    "p7zip"
     "yazi"
     "btop"
 
@@ -279,6 +284,99 @@ install_nvidia_drivers() {
   return
 }
 
+# step five, config zsh
+# ---------------------
+function zsh_config {
+  if sudo chsh -s /bin/zsh "$USER" >/dev/null 2>&1; then
+    echo "[OK] zsh set as default shell"
+  else
+    echo "[FAIL] zsh set as default shell"
+  fi
+
+  if mkdir -p "$HOME/.config/zsh/plugins" &>>log; then
+    echo "[OK] zsh directory created"
+  else
+    echo "[FAIL] zsh directory created"
+  fi
+
+  local repos=(
+    "https://github.com/zsh-users/zsh-autosuggestions.git|plugins/zsh-autosuggestions"
+    "https://github.com/zsh-users/zsh-syntax-highlighting.git|plugins/zsh-syntax-highlighting"
+    "https://github.com/romkatv/powerlevel10k.git|powerlevel10k"
+  )
+
+  for item in "${repos[@]}"; do
+    repo="${item%%|*}"
+    target="${item##*|}"
+    dest="$HOME/.config/zsh/$target"
+
+    if [ -d "$dest/.git" ]; then
+      echo "[OK] $target already exists"
+      continue
+    fi
+
+    if git clone "$repo" "$dest" &>>log; then
+      echo "[OK] $target cloned"
+    else
+      echo "[FAIL] clone $repo"
+    fi
+  done
+
+  local dir
+  dir="$(dirname "$(realpath "$0")")"
+
+  local shellFiles=(
+    ".zshrc"
+    ".p10k.zsh"
+  )
+
+  for file in "${shellFiles[@]}"; do
+    if rm "$HOME/$file" >/dev/null 2>&1; then
+      echo "[OK] rm old $file"
+    else
+      echo "[OK] old $file empty"
+    fi
+
+    if cp "$dir/home/$file" "$HOME/$file"; then
+      echo "[OK] paste $file"
+    else
+      echo "[FAIL] paste $file"
+    fi
+  done
+}
+
+ufw_config() {
+  if sudo ufw default deny incoming >/dev/null 2>&1; then
+    printf "[OK] ufw rule deny incoming\n"
+  else
+    printf "[FAIL] ufw rule deny incoming\n"
+    exit 1
+  fi
+
+  if sudo ufw default allow outgoing >/dev/null 2>&1; then
+    printf "[OK] ufw rule allow outgoing\n"
+  else
+    printf "[FAIL] ufw rule allow outgoing\n"
+    exit 1
+  fi
+
+  enable_output=$(sudo ufw --force enable 2>&1) || enable_status=$?
+  enable_status=${enable_status:-0}
+
+  if [ "$enable_status" -eq 0 ]; then
+    printf "[OK] ufw enabled\n"
+  else
+    printf "[FAIL] ufw enable\n"
+    [ -n "$enable_output" ] && printf "%s\n" "$enable_output"
+  fi
+
+  if sudo systemctl enable ufw.service >/dev/null 2>&1; then
+    printf "[OK] ufw service enabled\n"
+  else
+    printf "[FAIL] ufw service enable\n"
+  fi
+}
+
 function main {
   local personal_pkgs=$(input_value "Do you want install karakurt pks? (y/n): ")
   local nvidia_drivers=$(input_value "Do you want install nvidia drivers? (y/n): ")
@@ -289,6 +387,8 @@ function main {
   install_aur_helper
   install_aur_std_pkgs
   enable_std_services
+  zsh_config
+  ufw_config
   install_nvidia_drivers $nvidia_drivers
   install_personal_pkgs $personal_pkgs
   exit 0
