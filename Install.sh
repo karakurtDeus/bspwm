@@ -130,6 +130,7 @@ function install_std_pkgs {
     "bat"
     "eza"
     "zsh"
+    "jq"
     "zsh-completions"
     "fzf"
     "p7zip"
@@ -169,6 +170,8 @@ function install_std_pkgs {
 install_lazyvim() {
   lazyvim_link="https://github.com/LazyVim/starter"
   lazyvim_dir="$HOME/.config/nvim"
+  lazyvim_json="$lazyvim_dir/lazyvim.json"
+
   if ls $lazyvim_dir &>>log; then
     echo "[OK] Lazyvim already is installed"
   else
@@ -179,6 +182,37 @@ install_lazyvim() {
       exit 1
     fi
   fi
+
+  # enable hidden files
+  if cat >"$lazyvim_dir/lua/plugins/snacks.lua" <<'EOF'
+return {
+  "folke/snacks.nvim",
+  opts = {
+    picker = {
+      sources = {
+        explorer = { hidden = true },
+        files = { hidden = true },
+      },
+    },
+  },
+}
+EOF
+  then
+    echo "[OK] snacks hidden files"
+  else
+    echo "[FAIL] snacks hidden files"
+  fi
+
+  # extras - show color
+  if [ -f "$lazyvim_json" ] && jq --arg extra "lazyvim.plugins.extras.util.mini-hipatterns" '
+      .extras += [$extra]
+      | .extras |= unique
+    ' "$lazyvim_json" >"$lazyvim_json.tmp" && mv "$lazyvim_json.tmp" "$lazyvim_json"; then
+    echo "[OK] lazyvim extra mini-hipatterns"
+  else
+    echo "[FAIL] lazyvim extra mini-hipatterns"
+  fi
+
   return
 }
 
@@ -343,8 +377,11 @@ function zsh_config {
       echo "[FAIL] paste $file"
     fi
   done
+  return
 }
 
+# step six, config firewall
+# -------------------------
 ufw_config() {
   if sudo ufw default deny incoming >/dev/null 2>&1; then
     printf "[OK] ufw rule deny incoming\n"
@@ -375,6 +412,7 @@ ufw_config() {
   else
     printf "[FAIL] ufw service enable\n"
   fi
+  return
 }
 
 function main {
